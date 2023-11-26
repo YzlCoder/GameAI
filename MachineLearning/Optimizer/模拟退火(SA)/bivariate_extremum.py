@@ -4,17 +4,17 @@
 import numpy as np
 
 def fitness(v):
-    return 100 * (0.5 + (np.sin(np.sqrt(v[0] * v[0] + v[1] * v[1]))**2 - 0.5) / (1.0 + 0.001 * (v[0] * v[0] + v[1] * v[1]))**2)
+    return 100 * (0.5 + (np.sin(np.sqrt(v[0] ** 2 + v[1] * v[1]))**2 - 0.5)
+                  / (1.0 + 0.001 * (v[0] ** 2 + v[1] * v[1]))**2)
 
 ## 初始化数据
 def initialize_solution(dimensions, limit):
     return np.random.rand(dimensions) * (limit[1] - limit[0]) + limit[0]
 
 def perturb_solution(v):
-    change_k = np.random.uniform([0.85, 1], [1, 1.15], 2)
-    return v * change_k[(np.random.random(2) >= 0.5).astype(int)]
+    return v + np.random.uniform(-5, 5, 2)
 
-def SA(cur_tem = 100, tem_k = 0.95, iteration = 200, end_tem = 0.5, kv = 0.995, dimensions = 2, limit = [-1000, 1000]):
+def SA(cur_tem = 100, tem_k = 0.95, iteration = 1000, end_tem = 0.5, kv = 0.995, dimensions = 2, limit = [-100, 100], fk = 5):
     cur_solution = initialize_solution(dimensions, limit)
     cur_fitness = fitness(cur_solution)
     print("初始化解: %s, %f" % (cur_solution, cur_fitness))
@@ -25,7 +25,7 @@ def SA(cur_tem = 100, tem_k = 0.95, iteration = 200, end_tem = 0.5, kv = 0.995, 
                 continue;
             new_fitness = fitness(new_solution)
             if new_fitness < cur_fitness or \
-                np.exp(-(new_fitness - cur_fitness) / (tem_k * cur_tem)) >= np.random.random():
+                np.exp(-fk * (new_fitness - cur_fitness) / (tem_k * cur_tem)) >= np.random.random():
                 cur_solution = new_solution
                 cur_fitness = new_fitness
         tem_k = kv * tem_k
