@@ -24,9 +24,6 @@ def cross_entropy_deriv(pred, real):
     n_samples = real.shape[0]
     return pred - real
 
-
-
-# 定义 Layer 类
 class Layer:
     def __init__(self, input_size, output_size):
         self.weights = np.random.randn(input_size, output_size) * 0.1
@@ -49,10 +46,14 @@ class NeuralNetwork:
     def __init__(self):
         self.layers = []
         self.activations = []
+        self.loss_function = (cross_entropy, cross_entropy_deriv)
 
     def add_layer(self, layer, activation, activation_deriv):
         self.layers.append(layer)
         self.activations.append((activation, activation_deriv))
+
+    def set_loss(self, loss, loss_deriv):
+        self.loss_function = (loss, loss_deriv)
 
     def forward(self, input_data):
         output = input_data
@@ -63,17 +64,20 @@ class NeuralNetwork:
     def backward(self, loss_gradient, learning_rate):
         for i in reversed(range(len(self.layers))):
             layer = self.layers[i]
-            activation = self.activations[i][1]
-            loss_gradient = layer.backward(activation(layer.output) * loss_gradient, learning_rate)
+            activation_deriv = self.activations[i][1]
+            if activation_deriv is None:
+                loss_gradient = layer.backward(loss_gradient, learning_rate)
+            else:
+                loss_gradient = layer.backward(activation_deriv(layer.output) * loss_gradient, learning_rate)
 
     def train(self, x_train, y_train, epochs, learning_rate):
         training_results = []
         for epoch in range(epochs):
             output = self.forward(x_train)
-            loss_gradient = cross_entropy_deriv(output, y_train)
+            loss_gradient = self.loss_function[1](output, y_train)
             self.backward(loss_gradient, learning_rate)
             if epoch % 100 == 0:
-                loss = cross_entropy(output, y_train)
+                loss = self.loss_function[0](output, y_train)
                 training_results.append((epoch, loss))
         return training_results
 
