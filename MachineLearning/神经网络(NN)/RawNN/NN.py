@@ -86,7 +86,7 @@ class NeuralNetwork:
             output = self.forward(x_train)
             loss_gradient = self.loss_function[1](output, y_train)
             self.backward(loss_gradient, learning_rate)
-            if epoch % 1000 == 0:
+            if epoch % 10000 == 0:
                 loss = self.loss_function[0](output, y_train)
                 if train_iter is not None:
                     train_iter(epoch, loss)

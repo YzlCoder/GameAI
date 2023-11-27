@@ -20,18 +20,23 @@ def generate_dataset(num_samples):
 def train_update(epo, loss):
     print("Epochs:%d Loss:%f" % (epo, loss))
 
+
+def accuracy_test(x_test, y_test, nn_test):
+    # 使用训练好的模型对测试集进行前向传播
+    test_output = nn_test.forward(x_test)
+    # 转换 softmax 输出为类别预测
+    test_predictions = np.argmax(test_output, axis=1)
+    test_truth = np.argmax(Y_test, axis=1)
+    # 计算准确率
+    accuracy = np.mean(test_predictions == test_truth)
+    print(f"Test Accuracy: {accuracy * 100:.2f}%")
+
 # 数据生成和训练
-X, Y = generate_dataset(256)
-nn.train(X, Y, epochs, learning_rate, train_update)
-
-# 使用训练好的模型对测试集进行前向传播
+X_train, Y_train = generate_dataset(256)
 X_test, Y_test = generate_dataset(1000)
-test_output = nn.forward(X_test)
 
-# 转换 softmax 输出为类别预测
-test_predictions = np.argmax(test_output, axis=1)
-test_truth = np.argmax(Y_test, axis=1)
+accuracy_test(X_test, Y_test, nn)
 
-# 计算准确率
-accuracy = np.mean(test_predictions == test_truth)
-print(f"Test Accuracy: {accuracy * 100:.2f}%")
+nn.train(X_train, Y_train, epochs, learning_rate, train_update)
+
+accuracy_test(X_test, Y_test, nn)
