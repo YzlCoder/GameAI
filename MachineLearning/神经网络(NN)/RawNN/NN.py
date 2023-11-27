@@ -14,7 +14,7 @@ def cross_entropy(pred, real):
     return -np.sum(real * np.log(pred)) / n_samples
 
 def relu_deriv(x):
-    return x > 0
+    return (x > 0).astype(np.float32)  # 这里将布尔数组转换为浮点型数组
 
 def softmax_deriv(x):
     sx = softmax(x)
@@ -36,11 +36,22 @@ class Layer:
         self.output = np.dot(input, self.weights) + self.bias
         return self.output
 
-    def backward(self, output_gradient, learning_rate):
+    def backward(self, output_gradient, learning_rate, max_grad_norm=None):
         weights_gradient = np.dot(self.input.T, output_gradient)
+        bias_gradient = np.mean(output_gradient, axis=0)
+
+        # 对权重梯度进行梯度裁剪
+        if max_grad_norm is not None:
+            grad_norm = np.linalg.norm(weights_gradient)
+            if grad_norm > max_grad_norm:
+                weights_gradient = weights_gradient / grad_norm * max_grad_norm
+
+        # 使用裁剪后的梯度更新权重和偏置
         self.weights -= learning_rate * weights_gradient
-        self.bias -= learning_rate * np.mean(output_gradient, axis=0)
+        self.bias -= learning_rate * bias_gradient
+
         return np.dot(output_gradient, self.weights.T)
+
 # 定义神经网络
 class NeuralNetwork:
     def __init__(self):
@@ -66,18 +77,17 @@ class NeuralNetwork:
             layer = self.layers[i]
             activation_deriv = self.activations[i][1]
             if activation_deriv is None:
-                loss_gradient = layer.backward(loss_gradient, learning_rate)
+                loss_gradient = layer.backward(loss_gradient, learning_rate, max_grad_norm=1.0)
             else:
-                loss_gradient = layer.backward(activation_deriv(layer.output) * loss_gradient, learning_rate)
+                loss_gradient = layer.backward(activation_deriv(layer.output) * loss_gradient, learning_rate, max_grad_norm=1.0)
 
-    def train(self, x_train, y_train, epochs, learning_rate):
-        training_results = []
+    def train(self, x_train, y_train, epochs, learning_rate, train_iter):
         for epoch in range(epochs):
             output = self.forward(x_train)
             loss_gradient = self.loss_function[1](output, y_train)
             self.backward(loss_gradient, learning_rate)
-            if epoch % 100 == 0:
+            if epoch % 1000 == 0:
                 loss = self.loss_function[0](output, y_train)
-                training_results.append((epoch, loss))
-        return training_results
+                if train_iter is not None:
+                    train_iter(epoch, loss)
 
