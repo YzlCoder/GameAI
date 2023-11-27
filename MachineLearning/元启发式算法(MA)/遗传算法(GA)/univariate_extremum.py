@@ -1,3 +1,6 @@
+"""
+一元函数极值求解
+"""
 import numpy as np
 
 # 二进制转十进制
@@ -82,27 +85,10 @@ def GA(popsize=20, chromlength=20, pc=0.6, pm=0.1, generations=100, xlim=[0, 50]
         newpop = mutation(newpop, pm, chromlength)
         pop = newpop
 
-        print(f"最优解位置：{best_solution[max_index]}")
-        print(f"对应最优解：{ymax}")
+        print(f"最优解位置：{best_solution[gen]} 对应最优解：{best_fitness[gen]}")
 
     ymax, max_index = np.max(best_fitness), np.argmax(best_fitness)
-    print(f"最优解位置：{best_solution[max_index]}")
-    print(f"对应最优解：{ymax}")
-
-
-
-def plotfig(decpop, fx, xlim, k):
-    f = lambda x: np.abs(x * np.sin(x) * np.cos(2 * x) - 2 * x * np.sin(3 * x) + 3 * x * np.sin(4 * x))
-    x = np.arange(xlim[0], xlim[1], 0.05)
-    y = f(x)
-
-    plt.figure(figsize=(12, 6))  # 设置图形尺寸为12x6英寸
-    plt.gca().set_aspect('auto')
-    plt.plot(x, y, 'b-', decpop, fx, 'ro')
-    plt.title(f'第{k}次迭代进化')
-
-
-    plt.pause(0.2)
+    print(f"最优解位置：{best_solution[max_index]} 对应最优解：{ymax}")
 
 
 # 运行遗传算法

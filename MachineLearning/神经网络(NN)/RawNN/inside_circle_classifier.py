@@ -1,3 +1,7 @@
+"""
+通过神经网络训练，判断一个点是否在半径为1的圆内
+"""
+
 import NN
 import numpy as np
 
