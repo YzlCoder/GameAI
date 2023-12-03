@@ -25,7 +25,6 @@ class Inputter:
                         return False
         return True
 
-
 class Renderer:
     # 定义资源路径
     BIRD_IMAGE = 'bird.png'
@@ -34,13 +33,12 @@ class Renderer:
     BG_IMAGE = 'bg.jpg'
     LAND_IMAGE = 'land.png'
 
-    def __init__(self, game, resources_root):
+    def __init__(self, game, resources_root, fps):
         self.bird_img = pygame.image.load(os.path.join(resources_root, self.BIRD_IMAGE))
         self.bg_img = pygame.image.load(os.path.join(resources_root, self.BG_IMAGE))
         self.land_img = pygame.image.load(os.path.join(resources_root, self.LAND_IMAGE))
         self.pipe_img_up = pygame.image.load(os.path.join(resources_root, self.PIPE_IMAGE_UP))
         self.pipe_img_down = pygame.image.load(os.path.join(resources_root, self.PIPE_IMAGE_DOWN))
-
         # 初始化pygame
         pygame.init()
 
@@ -50,6 +48,8 @@ class Renderer:
         size = (game.screen_width, game.screen_height)
         self.screen = pygame.display.set_mode(size)
         self.clock = pygame.time.Clock()
+        self.fps = fps
+
 
     def renderer(self, game):
         # 绘制背景图片
@@ -73,13 +73,15 @@ class Renderer:
             self.screen.blit(scaled_pipe_img_down, (pipe.x, pipe_upper_y))
             self.screen.blit(scaled_pipe_img_up, (pipe.x, pipe_lower_y))
 
-
-
         # 绘制小鸟
         for bird in game.birds:
             bird_img = pygame.transform.scale(self.bird_img, game.bird_size)
             bird_img = pygame.transform.rotate(bird_img, bird.angle)
-            self.screen.blit(bird_img, (100, int(bird.height)))
+            if not bird.is_dead:
+                self.screen.blit(bird_img, (100, int(bird.height)))
+
+        # 绘制地板
+        self.screen.blit(self.land_img, (0, game.screen_height * game.land_rate))
 
         # 显示得分
         score_surface = self.font.render('Score: ' + str(game.score), True, (0, 0, 0))
@@ -88,7 +90,7 @@ class Renderer:
         # 更新屏幕
         pygame.display.flip()
         # 帧率控制: 30 FPS
-        return self.clock.tick(60) / 1000.0
+        return self.clock.tick(self.fps) / 1000.0
 
     def quit(self):
         pygame.quit()

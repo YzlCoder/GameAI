@@ -1,8 +1,16 @@
 import numpy as np
+import json
 
 # 激活函数
 def relu(x):
     return np.maximum(0, x)
+
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+def sigmoid_deriv(x):
+    sx = sigmoid(x)
+    return sx * (1 - sx)
 
 def softmax(x):
     exp_x = np.exp(x - np.max(x, axis=1, keepdims=True))
@@ -69,7 +77,9 @@ class NeuralNetwork:
     def forward(self, input_data):
         output = input_data
         for i, (layer, activation) in enumerate(zip(self.layers, self.activations)):
-            output = activation[0](layer.forward(output))
+            output = layer.forward(output)
+            if activation[0] is not None:
+                output = activation[0](output)
         return output
 
     def backward(self, loss_gradient, learning_rate):
@@ -90,3 +100,29 @@ class NeuralNetwork:
                 loss = self.loss_function[0](output, y_train)
                 if train_iter is not None:
                     train_iter(epoch, loss)
+
+    def serialize(self):
+        network_data = {
+            'layers': [],
+        }
+
+        for i, layer in enumerate(self.layers):
+            layer_data = {
+                'weights': layer.weights.tolist(),  # 假设weights是numpy数组
+                'biases': layer.bias.tolist(),  # 假设biases是numpy数组
+            }
+            network_data['layers'].append(layer_data)
+
+        return json.dumps(network_data)
+
+    def get_model(self):
+        models = []
+        for layer in self.layers:
+            models.append(layer.weights)
+            models.append(layer.bias)
+        return models
+
+    def set_model(self, models):
+        for layer, (weight, bias) in zip(self.layers, zip(models[::2], models[1::2])):
+            layer.weights = weight
+            layer.bias = bias
